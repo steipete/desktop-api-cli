@@ -96,6 +96,7 @@ func init() {
 					&chatsRetrieve,
 					&chatsList,
 					&chatsArchive,
+					&chatsLowPriority,
 					&chatsSearch,
 				},
 			},

@@ -70,6 +70,22 @@ beeper-desktop-cli chats search \
 
 For details about specific commands, use the `--help` flag.
 
+### Local-only workarounds
+
+The CLI also includes a local-only `chats low-priority` command that edits
+Beeper Desktop's local SQLite index directly:
+
+```sh
+beeper-desktop-cli chats low-priority \
+  --chat-id '!CbdmM0dqSOyXmyXL7pws:beeper.local' \
+  --low-priority=true
+```
+
+This is an unsupported workaround for a Beeper feature that is queryable via
+the public API but not currently writable through the public API. It updates
+`~/Library/Application Support/BeeperTexts/index.db` (or the path in
+`$BEEPER_DESKTOP_INDEX_DB_PATH`) and may be overwritten by Beeper itself.
+
 ### Global Flags
 
 - `--help` - Show command line usage

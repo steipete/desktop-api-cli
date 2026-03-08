@@ -162,6 +162,26 @@ var chatsArchive = cli.Command{
 	HideHelpCommand: true,
 }
 
+var chatsLowPriority = cli.Command{
+	Name:    "low-priority",
+	Usage:   "Set or unset a chat's local Low Priority state in Beeper's SQLite index.\nUnsupported local workaround; may be overwritten by Beeper.",
+	Suggest: true,
+	Flags: []cli.Flag{
+		&requestflag.Flag[string]{
+			Name:     "chat-id",
+			Usage:    "Unique identifier of the chat.",
+			Required: true,
+		},
+		&requestflag.Flag[bool]{
+			Name:    "low-priority",
+			Usage:   "True to mark the chat low priority, false to restore it to the primary inbox.",
+			Default: true,
+		},
+	},
+	Action:          handleChatsLowPriority,
+	HideHelpCommand: true,
+}
+
 var chatsSearch = cli.Command{
 	Name:    "search",
 	Usage:   "Search chats by title/network or participants using Beeper Desktop's renderer\nalgorithm.",
@@ -380,6 +400,27 @@ func handleChatsArchive(ctx context.Context, cmd *cli.Command) error {
 		params,
 		options...,
 	)
+}
+
+func handleChatsLowPriority(ctx context.Context, cmd *cli.Command) error {
+	unusedArgs := cmd.Args().Slice()
+	if !cmd.IsSet("chat-id") && len(unusedArgs) > 0 {
+		cmd.Set("chat-id", unusedArgs[0])
+		unusedArgs = unusedArgs[1:]
+	}
+	if len(unusedArgs) > 0 {
+		return fmt.Errorf("Unexpected extra arguments: %v", unusedArgs)
+	}
+
+	res, err := setChatLowPriority(ctx, resolveBeeperIndexDBPath(), cmd.Value("chat-id").(string), cmd.Bool("low-priority"))
+	if err != nil {
+		return err
+	}
+
+	obj := gjson.ParseBytes(res.mustJSON())
+	format := cmd.Root().String("format")
+	transform := cmd.Root().String("transform")
+	return ShowJSON(os.Stdout, "chats low-priority", obj, format, transform)
 }
 
 func handleChatsSearch(ctx context.Context, cmd *cli.Command) error {
