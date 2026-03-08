@@ -1,0 +1,4 @@
+interface:
+  display_name: "Beeper"
+  short_description: "Read/search/send Beeper chats across WhatsApp, Signal, Telegram, Discord, Google Messages, Slack, Twitter/X DMs, Google Chat, LinkedIn, Instagram, Facebook Messenger, Google Voice, and Matrix."
+  default_prompt: "Use $beeper to work with Beeper Desktop chats from the terminal across Beeper-supported services; read/search first and require explicit approval before any send, archive, or local low-priority change."
