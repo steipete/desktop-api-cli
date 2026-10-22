@@ -66,8 +66,11 @@ var debugMiddlewareOption = option.WithMiddleware(
 )
 
 func isInputPiped() bool {
-	stat, _ := os.Stdin.Stat()
-	return (stat.Mode() & os.ModeCharDevice) == 0
+	stat, err := os.Stdin.Stat()
+	if err != nil || stat == nil {
+		return false
+	}
+	return stat.Mode()&os.ModeCharDevice == 0
 }
 
 func isTerminal(w io.Writer) bool {

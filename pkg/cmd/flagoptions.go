@@ -41,12 +41,49 @@ const (
 )
 
 func embedFiles(obj any, embedStyle FileEmbedStyle) (any, error) {
+	if obj == nil {
+		return nil, nil
+	}
 	v := reflect.ValueOf(obj)
+	if !v.IsValid() {
+		return nil, nil
+	}
 	result, err := embedFilesValue(v, embedStyle)
 	if err != nil {
 		return nil, err
 	}
+	if !result.IsValid() {
+		return nil, nil
+	}
 	return result.Interface(), nil
+}
+
+func readPipedBody(flagBody any) (any, error) {
+	pipeData, err := io.ReadAll(os.Stdin)
+	if err != nil {
+		return nil, err
+	}
+	if len(bytes.TrimSpace(pipeData)) == 0 {
+		return flagBody, nil
+	}
+	var bodyData any
+	if err := yaml.Unmarshal(pipeData, &bodyData); err != nil {
+		return nil, err
+	}
+	if bodyData == nil {
+		return flagBody, nil
+	}
+	if bodyMap, ok := bodyData.(map[string]any); ok {
+		if flagMap, ok := flagBody.(map[string]any); ok {
+			maps.Copy(bodyMap, flagMap)
+			return bodyMap, nil
+		}
+		return flagBody, nil
+	}
+	if flagMap, ok := flagBody.(map[string]any); ok && len(flagMap) > 0 {
+		return nil, fmt.Errorf("Cannot merge flags with a body that is not a map: %v", bodyData)
+	}
+	return bodyData, nil
 }
 
 // Replace "@file.txt" with the file's contents inside a value
@@ -219,21 +256,9 @@ func flagOptions(
 	var bodyData any
 	if isInputPiped() && !stdinInUse {
 		var err error
-		pipeData, err := io.ReadAll(os.Stdin)
+		bodyData, err = readPipedBody(flagContents.Body)
 		if err != nil {
 			return nil, err
-		}
-
-		if err := yaml.Unmarshal(pipeData, &bodyData); err == nil {
-			if bodyMap, ok := bodyData.(map[string]any); ok {
-				if flagMap, ok := flagContents.Body.(map[string]any); ok {
-					maps.Copy(bodyMap, flagMap)
-				} else {
-					bodyData = flagContents.Body
-				}
-			} else if flagMap, ok := flagContents.Body.(map[string]any); ok && len(flagMap) > 0 {
-				return nil, fmt.Errorf("Cannot merge flags with a body that is not a map: %v", bodyData)
-			}
 		}
 	} else {
 		// No piped input, just use body flag values as a map

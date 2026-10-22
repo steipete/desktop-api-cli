@@ -6,8 +6,10 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/beeper/desktop-api-cli/internal/apiquery"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/urfave/cli/v3"
 )
 
 func TestIsUTF8TextFile(t *testing.T) {
@@ -241,4 +243,63 @@ func writeTestFile(t *testing.T, dir, filename, content string) {
 	path := filepath.Join(dir, filename)
 	err := os.WriteFile(path, []byte(content), 0644)
 	require.NoError(t, err, "failed to write test file %s", path)
+}
+
+func TestReadPipedBodyFallsBackWhenThePipeIsEmptyOrNull(t *testing.T) {
+	flags := map[string]any{"keep": true}
+	for _, payload := range []string{"", "\n", "null\n"} {
+		withStdin(t, payload, func() {
+			got, err := readPipedBody(flags)
+			require.NoError(t, err)
+			assert.Equal(t, flags, got)
+		})
+	}
+}
+
+func TestReadPipedBodyMergesAMap(t *testing.T) {
+	withStdin(t, "name: ada\n", func() {
+		got, err := readPipedBody(map[string]any{"keep": true})
+		require.NoError(t, err)
+		assert.Equal(t, map[string]any{"name": "ada", "keep": true}, got)
+	})
+}
+
+func TestReadPipedBodyReturnsInvalidYAML(t *testing.T) {
+	withStdin(t, "[\n", func() {
+		_, err := readPipedBody(map[string]any{})
+		require.Error(t, err)
+	})
+}
+
+func TestFlagOptionsEmptyPipeDoesNotPanic(t *testing.T) {
+	withStdin(t, "", func() {
+		_, err := flagOptions(&cli.Command{Name: "info"}, apiquery.NestedQueryFormatBrackets, apiquery.ArrayQueryFormatRepeat, ApplicationJSON, false)
+		require.NoError(t, err)
+	})
+}
+
+func TestIsInputPipedClosedStdin(t *testing.T) {
+	file, err := os.CreateTemp(t.TempDir(), "stdin")
+	require.NoError(t, err)
+	require.NoError(t, file.Close())
+	original := os.Stdin
+	os.Stdin = file
+	t.Cleanup(func() { os.Stdin = original })
+	assert.False(t, isInputPiped())
+}
+
+func withStdin(t *testing.T, payload string, fn func()) {
+	t.Helper()
+	reader, writer, err := os.Pipe()
+	require.NoError(t, err)
+	_, err = writer.Write([]byte(payload))
+	require.NoError(t, err)
+	require.NoError(t, writer.Close())
+	original := os.Stdin
+	os.Stdin = reader
+	t.Cleanup(func() {
+		os.Stdin = original
+		_ = reader.Close()
+	})
+	fn()
 }
