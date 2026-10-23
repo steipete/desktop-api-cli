@@ -7,11 +7,19 @@ concurrency:
   group: publish
 
 on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Build a snapshot without publishing
+        type: boolean
+        required: true
+        default: true
   push:
     tags:
       - "v*"
 jobs:
   goreleaser:
+    if: github.event_name == 'push' || inputs.dry_run
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
@@ -21,8 +29,15 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v5
       with:
-        go-version-file: "go.mod"
+        go-version: '1.27.3'
+    - name: Check release build without publishing
+      if: github.event_name == 'workflow_dispatch'
+      uses: goreleaser/goreleaser-action@v6.1.0
+      with:
+        version: latest
+        args: release --snapshot --clean --skip=publish
     - name: Run GoReleaser
+      if: github.event_name == 'push'
       uses: goreleaser/goreleaser-action@v6.1.0
       with:
         version: latest

@@ -45,15 +45,9 @@ func embedFiles(obj any, embedStyle FileEmbedStyle) (any, error) {
 		return nil, nil
 	}
 	v := reflect.ValueOf(obj)
-	if !v.IsValid() {
-		return nil, nil
-	}
 	result, err := embedFilesValue(v, embedStyle)
 	if err != nil {
 		return nil, err
-	}
-	if !result.IsValid() {
-		return nil, nil
 	}
 	return result.Interface(), nil
 }
