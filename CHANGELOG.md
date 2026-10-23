@@ -2,8 +2,12 @@
 
 ## Unreleased
 
-* Prevent panics for empty, null, and closed stdin, preserve body flags, and report malformed piped input. Thanks @SebTardif.
+## 0.1.2 (2026-10-23)
+
+**Highlights:** Fix reachable crypto/x509 vulnerability GO-2026-6809 with Go 1.27.3, and prevent crashes when stdin is empty or closed.
+
 * Build and scan with Go 1.27.3 to address reachable standard-library vulnerabilities while retaining the Go 1.25 minimum.
+* Prevent panics for empty, null, and closed stdin, preserve body flags, and report malformed piped input. Thanks @SebTardif.
 
 ## 0.1.1 (2026-02-25)
 
