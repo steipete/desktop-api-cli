@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+* Prevent panics for empty, null, and closed stdin, preserve body flags, and report malformed piped input. Thanks @SebTardif.
+* Build and scan with Go 1.27.3 to address reachable standard-library vulnerabilities while retaining the Go 1.25 minimum.
+
 ## 0.1.1 (2026-02-25)
 
 Full Changelog: [v0.1.0...v0.1.1](https://github.com/beeper/desktop-api-cli/compare/v0.1.0...v0.1.1)

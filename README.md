@@ -14,7 +14,7 @@ brew install beeper/tap/beeper-desktop-cli
 
 ### Installing with Go
 
-To test or install the CLI locally, you need [Go](https://go.dev/doc/install) version 1.22 or later installed.
+To test or install the CLI locally, you need [Go](https://go.dev/doc/install) version 1.25 or later installed. CI and release builds use Go 1.27.3.
 
 ```sh
 go install 'github.com/beeper/desktop-api-cli/cmd/beeper-desktop-cli@latest'
@@ -88,6 +88,9 @@ To pass files to your API, you can use the `@myfile.ext` syntax:
 ```bash
 beeper-desktop-cli <command> --arg @abe.jpg
 ```
+
+An empty, whitespace-only, or `null` stdin body leaves body flags unchanged.
+Malformed JSON or YAML is reported as an error before any API request is sent.
 
 Files can also be passed inside JSON or YAML blobs:
 
