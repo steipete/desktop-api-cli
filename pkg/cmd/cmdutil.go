@@ -227,7 +227,7 @@ func ShowJSON(out *os.File, title string, res gjson.Result, format string, trans
 	case "explore":
 		return jsonview.ExploreJSON(title, res)
 	default:
-		bytes, err := formatJSON(out, title, res, format, transform)
+		bytes, err := formatJSON(out, title, res, format, "")
 		if err != nil {
 			return err
 		}
